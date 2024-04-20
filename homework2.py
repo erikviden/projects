@@ -57,8 +57,12 @@ while True:
         if account_balance > 0:
             if product in warehouse:
                 warehouse[product]["quantity"] += quantity
+                for product, details in warehouse.items():
+                    print(f"{product}: {details['quantity']} units - ${details['price']} per unit")
             else:
                 warehouse[product] = {"price": price, "quantity": quantity}
+                for product, details in warehouse.items():
+                    print(f"{product}: {details['quantity']} units - ${details['price']} per unit")
             print(f"Purchased {quantity} {product} for {total_price}$")
             operations.append(f"{quantity} units of {product} purchased for {total_price} $.")
 
