@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>History</title>
+</head>
+<a href="{{ url_for('index') }}">Main page</a>
+<body>
+<form method="POST" action="{{ url_for('history') }}">
+    <h1>History</h1>
+    <label>From:</label>
+    <input type="number" name="number_input">
+    <label>To:</label>
+    <input type="number" name="number_input">
+    <button type="submit">Submit</button>
+</form>
+
+</body>
+</html>
