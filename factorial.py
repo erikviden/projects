@@ -23,7 +23,7 @@ def measure_time(func):
 def factorial(value):
     return calculate_factorial(value)
 
-values_to_test = [1, 9, 27, 88, 175, 299, 512, 1024]
+values = [1, 9, 27, 88, 175, 299, 512, 1024]
 
-for value in values_to_test:
+for value in values:
     print(f"Factorial {value}: {factorial(value)}")
