@@ -13,8 +13,8 @@ def measure_time(func):
         result = func(*args, **kwargs)
         end = time.time()
         calculation_time = end - start
-        with open("factorial.txt", "a") as file:
-            file.write(f"Calculation time of factorial {args[0]} is {calculation_time}\n")
+        with open("factorial.txt", "a") as file_stream:
+            file_stream.write(f"Calculation time of factorial {args[0]} is {calculation_time}\n")
         return result
     return wrapper
 
