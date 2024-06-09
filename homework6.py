@@ -1,72 +1,92 @@
-import requests
-from pprint import pprint
 import json
 import datetime
-import geopy
+import requests
+from geopy.geocoders import Nominatim
 
-saved_data = {}
+
+class WeatherForecast:
+    def __init__(self, filename="data.json"):
+        self.filename = filename
+        self.data = self.load_data()
+
+    def load_data(self):
+        try:
+            with open(self.filename, "r") as file:
+                return json.load(file)
+        except FileNotFoundError:
+            return {}
+
+    def _save_data(self):
+        with open(self.filename, "w") as file:
+            json.dump(self.data, file, indent=4)
+
+    def __setitem__(self, date, forecast):
+        if date not in self.data:
+            self.data[date] = forecast
+            self._save_data()
+
+    def __getitem__(self, date):
+        return self.data.get(date, "No forecast available")
+
+    def __iter__(self):
+        return iter(self.data.keys())
+
+    def items(self):
+        for date, forecast in self.data.items():
+            yield date, forecast
+
+
 def get_latitude_longitude(city):
-    geolocator = geopy.Nominatim(user_agent=".")
+    geolocator = Nominatim(user_agent="weather_forecast_app")
     location = geolocator.geocode(city)
     if location:
-        latitude = int(location.latitude)
-        longitude = int(location.longitude)
-        return latitude, longitude
+        return location.latitude, location.longitude
     else:
         print("Location not found.")
         return None, None
 
 
-def get_weather(date, latitude, longitude):
-    try:
-        with open("data.json", "r") as file_stream:
-            data = json.load(file_stream)
-            if date and latitude and longitude in data:
-                return data[date][latitude][longitude]
-    except FileNotFoundError:
-        pass
+def fetch_weather(date, latitude, longitude):
+    URL = f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&daily=rain_sum&start_date={date}&end_date={date}"
+    response = requests.get(URL)
+    return response.json()
 
-while True:
+
+def main():
+    weather_forecast = WeatherForecast()
+
     city = input("Enter a city: ")
     latitude, longitude = get_latitude_longitude(city)
-    if latitude is not None and longitude is not None:
-        print(f"Latitude: {latitude}, Longitude: {longitude}")
-        break
+    if latitude is None or longitude is None:
+        return
 
-coordinates = get_latitude_longitude(city)
+    print(f"Latitude: {latitude}, Longitude: {longitude}")
+
+    date = input("Enter a date in YYYY-MM-DD format to check the weather: ")
+    if not date:
+        current_date = datetime.date.today()
+        date = (current_date + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+
+    if date not in weather_forecast:
+        weather_data = fetch_weather(date, latitude, longitude)
+        rain_sum = weather_data["daily"]["rain_sum"][0] if "daily" in weather_data and "rain_sum" in weather_data[
+            "daily"] else None
+        weather_forecast[date] = {"rain_sum": rain_sum}
+
+    forecast = weather_forecast[date]
+    rain_sum = forecast["rain_sum"]
+    if rain_sum is not None:
+        if rain_sum > 0.0:
+            print(f"{date}: Rain in {city}.")
+        else:
+            print(f"{date}: No rain in {city}.")
+    else:
+        print("Weather data not available.")
+
+    print("\nSaved weather forecasts:")
+    for date, forecast in weather_forecast.items():
+        print(f"{date}: {forecast}")
 
 
-date = input("Enter a date in YYYY-MM-DD format to check the weather: ")
-
-if date:
-    URL = f"https://api.open-meteo.com/v1/forecast?latitude={coordinates[0]}&longitude={coordinates[1]}&daily=rain_sum&start_date={date}&end_date={date}"
-    response = requests.get(URL)
-    data_from_url = response.json()
-    with open("data.json", mode="w") as file_stream:
-        data_as_json = json.dumps(data_from_url)
-        file_stream.write(data_as_json)
-
-elif not date:
-    current_date = datetime.date.today()
-    next_day = current_date + datetime.timedelta(days=1)
-    URL = f"https://api.open-meteo.com/v1/forecast?latitude={coordinates[0]}&longitude={coordinates[1]}&daily=rain_sum&start_date={next_day}&end_date={next_day}"
-    response = requests.get(URL)
-    data_from_url = response.json()
-    with open("data.json", mode="w") as file_stream:
-        data_as_json = json.dumps(data_from_url)
-        file_stream.write(data_as_json)
-
-with open("data.json", mode="r") as file_stream:
-    data_as_json = file_stream.read()
-    data = json.loads(data_as_json)
-
-
-rain_sum = data["daily"]["rain_sum"]
-rain_sum = rain_sum[0]
-
-if rain_sum > 0.0 :
-    print(f"{date} rain in {city}.")
-elif rain_sum == 0.0:
-    print(f"{date} no rain in {city}.")
-else:
-    print("I don't know")
+if __name__ == "__main__":
+    main()
