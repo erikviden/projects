@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quotes</title>
+</head>
+<body>
+    <h1>Quotes</h1>
+    <form method="POST" action="{{ url_for('search') }}">
+        <input type="text" name="search" placeholder="Search...">
+        <select name="filter_by">
+            <option value="author">Author</option>
+            <option value="tag">Tag</option>
+        </select>
+        <button type="submit">Search</button>
+    </form>
+    <h2>Random Quote</h2>
+    <a href="{{ url_for('random_quote') }}">Show Random Quote</a>
+    <h2>All Quotes</h2>
+    <ul>
+        {% for quote in quotes %}
+            <li>
+                <p>"{{ quote.quote }}"</p>
+                <p>- {{ quote.author }}</p>
+                <p>Tags: {{ quote.tags }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
