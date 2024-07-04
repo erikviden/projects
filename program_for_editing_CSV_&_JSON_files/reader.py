@@ -16,7 +16,7 @@ try:
         print("Old CSV file:")
         for r in values_from_csv_file:
             print(r)
-except:
+except FileNotFoundError:
     print(f"File {src} does not exist.")
 
 for change in change:
@@ -39,4 +39,4 @@ try:
         for row in values_from_csv_file:
             print(row)
 except:
-    print(f"Error writing the file.")
+    print(f"Error.")
